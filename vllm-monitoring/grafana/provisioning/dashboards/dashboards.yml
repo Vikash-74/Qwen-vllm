@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: Qwen vLLM dashboards
+    orgId: 1
+    folder: Qwen vLLM
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

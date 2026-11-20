@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: vllm-server-a
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["${SERVER_A_METRICS_TARGET}"]
+        labels:
+          server: server-a
+
+  - job_name: vllm-server-b
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["${SERVER_B_METRICS_TARGET}"]
+        labels:
+          server: server-b
+
+  - job_name: vllm-router
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["${ROUTER_METRICS_TARGET}"]
+
+  - job_name: dcgm
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["dcgm-exporter:9400"]

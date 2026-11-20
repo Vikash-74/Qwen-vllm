@@ -1,0 +1,29 @@
+# Forecasting virtual environment (do not commit)
+forecasting/moirai-env/
+forecasting/moriai-env/
+
+# Python bytecode / caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Binary wheel / packaged distributions
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local environment files with secrets (keep *.example only)
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

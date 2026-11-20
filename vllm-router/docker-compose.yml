@@ -1,0 +1,30 @@
+services:
+  vllm-router:
+    image: vllm/vllm-router:latest
+    container_name: qwen-vllm-router
+    restart: unless-stopped
+    pull_policy: always
+    ports:
+      - "${ROUTER_PORT:-8001}:8001"
+      - "${ROUTER_METRICS_PORT:-9000}:9000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: [ "vllm-router" ]
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8001"
+      - --worker-urls
+      - "http://host.docker.internal:8000"
+      # - ${REMOTE_VLLM_URL}
+      - --policy
+      - ${ROUTER_POLICY:-round_robin}
+      - --prometheus-host
+      - 0.0.0.0
+      - --prometheus-port
+      - "9000"
+      - --health-check-interval-secs
+      - ${ROUTER_HEALTH_INTERVAL:-10}
+    environment:
+      PYTHONUNBUFFERED: "1"

@@ -1,0 +1,70 @@
+model:
+  checkpoint: Salesforce/moirai-1.1-R-small
+  prediction_length: 15        # minutes ahead (data is resampled to 1 minute)
+  context_length: 128          # minutes of history the model sees
+  patch_size: auto
+  num_samples: 100
+  batch_size: 32
+
+prometheus:
+  url: http://localhost:9090
+  history_hours: 360           # 15 days, backfilled once then updated incrementally
+  sampling_interval: 15s       # query step sent to Prometheus
+
+forecast:
+  refresh_interval_seconds: 60
+  minimum_data_points: 100             # contiguous 1-minute points required
+  incremental_overlap_minutes: 10      # re-fetch overlap on each cycle
+  max_gap_minutes: 5                   # longest gap that may be interpolated
+  max_fill_ratio: 0.2                  # reject if >20% of the context was interpolated
+  max_staleness_minutes: 5             # reject if the newest sample is older than this
+
+exporter:                      # optional Prometheus-format endpoint
+  enabled: true
+  host: 0.0.0.0
+  port: 9108
+
+clickhouse:
+  enabled: true
+  host: localhost
+  port: 8123                   # HTTP port
+  username: forecaster
+  password: change-me          # or set CLICKHOUSE_PASSWORD
+  database: monitoring
+  table: vllm_forecasts
+  secure: false
+  ttl_days: 90
+
+# type: gauge        -> raw value is forecast
+# type: counter_rate -> query MUST use rate(); never forecast a raw counter
+# clip: [low, high]  -> bounds applied to the forecast (null = unbounded)
+# The forecast name is derived automatically:
+#   vllm:num_requests_running -> vllm:forecast_num_requests_running
+# Add `forecast_name: my:custom_name` to a metric to override it.
+metrics:
+  - name: vllm:num_requests_running
+    query: sum(vllm:num_requests_running)
+    type: gauge
+    clip: [0, null]
+
+  - name: vllm:num_requests_waiting
+    query: sum(vllm:num_requests_waiting)
+    type: gauge
+    clip: [0, null]
+
+  # Newer vLLM versions renamed this to vllm:kv_cache_usage_perc.
+  # Check what your /metrics endpoint exposes.
+  - name: vllm:gpu_cache_usage_perc
+    query: max(vllm:gpu_cache_usage_perc)
+    type: gauge
+    clip: [0, 1]
+
+  - name: vllm:generation_tokens_per_second
+    query: sum(rate(vllm:generation_tokens_total[2m]))
+    type: counter_rate
+    clip: [0, null]
+
+  - name: vllm:prompt_tokens_per_second
+    query: sum(rate(vllm:prompt_tokens_total[2m]))
+    type: counter_rate
+    clip: [0, null]

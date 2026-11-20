@@ -1,0 +1,30 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]
+  - job_name: vllm-server-a
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+        labels:
+          server: server-a
+  - job_name: vllm-server-b
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["192.168.1.102:8000"]
+        labels:
+          server: server-b
+  - job_name: vllm-router
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:9000"]
+  - job_name: "moirai-forecast"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "host.docker.internal:9108"
+ 
